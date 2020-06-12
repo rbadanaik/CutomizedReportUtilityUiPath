@@ -4,19 +4,35 @@ namespace TestReportGenerator
 {
     public enum LogTarget
     {
-        File, Database, EventLog
+        File, EventLog
     }
     class FileLogger : LogBase
     {
-
-        string curDir = Directory.GetCurrentDirectory();
-        public string filePath = @"C:\Users\ranbadan\Documents\UiPath\TestReportAndLogger\logfile.txt";
         public void Log(string message)
         {
-            using (StreamWriter streamWriter = new StreamWriter(filePath))
+            string curDir = Directory.GetCurrentDirectory();
+            string logDirectory = $@"{curDir}\executionlogs";
+
+            if (!Directory.Exists(logDirectory))
             {
-                streamWriter.WriteLine(message);
-                streamWriter.Close();
+                Directory.CreateDirectory(logDirectory);
+            }
+            string filePath = $@"{logDirectory}\logfile.txt";
+
+            if (!File.Exists(filePath))
+            {
+                // Create a file to write to.
+                using (StreamWriter sw = File.CreateText(filePath))
+                {
+                    sw.WriteLine(message);
+                }
+            }
+            else
+            {
+                using (StreamWriter sw = File.AppendText(filePath))
+                {
+                    sw.WriteLine(message);
+                }
             }
         }
     }
