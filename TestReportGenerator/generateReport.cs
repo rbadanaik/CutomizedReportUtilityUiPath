@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Activities.Statements;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -92,6 +93,7 @@ namespace TestReportGenerator
                 string status = element.Element("Status").Value;
                 string alertType = "";
                 string timeTaken = getTimeTaken(startTime,endTime);
+                string snapshotLink = "";
 
                 if (status.ToUpper().Equals("PASSED"))
                 {
@@ -99,13 +101,17 @@ namespace TestReportGenerator
                 }
                 else
                 {
+                    string snapshotLinkPath = getSnapshotPath();
+                    Console.WriteLine("Inside else block: "+snapshotLinkPath);
+                    snapshotLink = string.Format("<a href=\"%1$s\" target='_blank'>Click Here</a>", snapshotLinkPath);
                     alertType = string.Format(" %1$s", FailedBackgroundColor());
                 }
 
                 String scenario = testScenario.Replace("[^\\w\\s]", "");
                 String scenarioRow = ReportTemplate.ScenarioTemplate.Replace("%SCENARIONAME%", scenario)
                         .Replace("%ALERTTYPE%", alertType).Replace("%SCENARIOSTATUS%", status)
-                        //.replace("%ALERTERRORMESSAGE%", alertErrorMessage).replace("%SNAPSHOTLINK%", snapshotLink)
+                        //.replace("%ALERTERRORMESSAGE%", alertErrorMessage).
+                        .Replace("%SNAPSHOTLINK%", snapshotLink)
                         .Replace("%TIMETAKEN%", timeTaken)
                         .Replace("%STEPSTABLE%", scenario.Replace(" ", ""));
                
@@ -142,6 +148,22 @@ namespace TestReportGenerator
         private static string SkippedBackgroundColour()
         {
             return "bg-light";
+        }
+
+        private static string getSnapshotPath()
+        {
+            string curDir = Directory.GetCurrentDirectory();
+            string screenshotDir = $@"{curDir}\.screenshots";
+            DirectoryInfo directory = new DirectoryInfo(screenshotDir);
+            var myFile = (from f in directory.GetFiles()
+                          orderby f.LastWriteTime descending
+                          select f).First();
+            string screenshotName = myFile.FullName;
+
+            Console.WriteLine("File Details: " + myFile);
+            Console.WriteLine("Screenshot Name: " + screenshotName);
+
+            return screenshotName;
         }
 
     }

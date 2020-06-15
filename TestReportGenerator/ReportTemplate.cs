@@ -178,7 +178,7 @@ namespace TestReportGenerator
 			"					<th>Scenario</th>" +
 			"					<th>Status</th>" +
 //			"					<th>Error</th>" +
-//			"					<th>Snapshot Link</th>" +
+			"					<th>Snapshot Link</th>" +
 			"					<th>Time Taken (in Secs)</th>" +
 			"				</tr>" +
 			"			</thead>" +
@@ -190,8 +190,8 @@ namespace TestReportGenerator
 			"	<td align='center'>%SCENARIOSTATUS%</td>" +
 			/*"	<td align='center'>" +
 			"		<div class='container'>%ALERTERRORMESSAGE%</div>" +
-			"	</td>" +
-			"	<td align='center'>%SNAPSHOTLINK%</td>" +*/
+			"	</td>" +*/
+			"	<td align='center'>%SNAPSHOTLINK%</td>" +
 			"	<td align='center'>%TIMETAKEN%</td>" +
 			"</tr>";
 
