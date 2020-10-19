@@ -14,14 +14,18 @@ namespace TestReportGenerator
 
        public static string generateHeaderOnTestEnd(string file)
         {
+
+            
             StringBuilder html = new StringBuilder();
             XElement doc = XElement.Load(file);
+
+            Console.WriteLine("xml file is loading-------------------");
 
             // Load summary values
             string scenarioName = doc.Attribute("name").Value;
             int testTests = int.Parse(!string.IsNullOrEmpty(doc.Attribute("total").Value) ? doc.Attribute("total").Value : "0");
             int testPassed = int.Parse(!string.IsNullOrEmpty(doc.Attribute("passed").Value) ? doc.Attribute("passed").Value : "0");
-            int testFailures = int.Parse(!string.IsNullOrEmpty(doc.Attribute("failures").Value) ? doc.Attribute("failures").Value : "0");
+            int testFailures = int.Parse(!string.IsNullOrEmpty(doc.Attribute("failed").Value) ? doc.Attribute("failed").Value : "0");
             DateTime testDate = DateTime.Parse(string.Format("{0}", doc.Attribute("execution-date").Value));
             TimeSpan totalTime = TimeSpan.Parse(!string.IsNullOrEmpty(doc.Attribute("total-time").Value) ? doc.Attribute("total-time").Value : "0");
             //string testPlatform = doc.Element("environment").Attribute("platform").Value;
@@ -95,19 +99,23 @@ namespace TestReportGenerator
                 string timeTaken = getTimeTaken(startTime,endTime);
                 string snapshotLink = "";
 
+                Console.WriteLine("--------- here we go-------------------------------");
+
                 if (status.ToUpper().Equals("PASSED"))
                 {
                     alertType = string.Format(" %1$s", PassedBackgroundColor());
                 }
                 else
                 {
+                    Console.WriteLine("inside failed else block-----------------------------");
                     string snapshotLinkPath = getSnapshotPath();
                     Console.WriteLine("Inside else block: "+snapshotLinkPath);
-                    snapshotLink = string.Format("<a href=\"%1$s\" target='_blank'>Click Here</a>", snapshotLinkPath);
+                    snapshotLink = string.Format("<a href=\"{0}\" target='_blank'>Click Here</a>", snapshotLinkPath);
                     alertType = string.Format(" %1$s", FailedBackgroundColor());
                 }
 
                 String scenario = testScenario.Replace("[^\\w\\s]", "");
+                Console.WriteLine("Snapshot link---------" + snapshotLink);
                 String scenarioRow = ReportTemplate.ScenarioTemplate.Replace("%SCENARIONAME%", scenario)
                         .Replace("%ALERTTYPE%", alertType).Replace("%SCENARIOSTATUS%", status)
                         //.replace("%ALERTERRORMESSAGE%", alertErrorMessage).
@@ -153,16 +161,14 @@ namespace TestReportGenerator
         private static string getSnapshotPath()
         {
             string curDir = Directory.GetCurrentDirectory();
-            string screenshotDir = $@"{curDir}\.screenshots";
+            string screenshotDir = $@"{curDir}\ExecutionScreenshots";
             DirectoryInfo directory = new DirectoryInfo(screenshotDir);
             var myFile = (from f in directory.GetFiles()
                           orderby f.LastWriteTime descending
                           select f).First();
             string screenshotName = myFile.FullName;
-
             Console.WriteLine("File Details: " + myFile);
             Console.WriteLine("Screenshot Name: " + screenshotName);
-
             return screenshotName;
         }
 

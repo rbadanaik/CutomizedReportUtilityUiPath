@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Activities;
-using System.Collections.Generic;
+using System.Activities.Statements;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -31,11 +29,13 @@ namespace TestReportGenerator
 
         protected override void Execute(CodeActivityContext context)
         {
+
+
             if (File.Exists("Temp.xml"))
             {
+                // Save data in temp xml per scenario
 
                 XDocument doc = XDocument.Load("Temp.xml");
-
                 XElement updateStartedElement = doc.Element("Test-Suite").Element("Result").Element("Status");
                 updateStartedElement.Value = Status.Get(context);
 
@@ -77,10 +77,16 @@ namespace TestReportGenerator
                         XElement element = doc_Main.Element("Test-Suite");
 
                         // Add Atrributes
-                        CheckAndUpdateAttributes(element);
+                        CreateSummaryTabAttribute(element);
 
-                        //Increment Total Attributes
-                        IncrementTotalANDPassedAttributes(element);
+                        //Increment Total Attributes based on execution
+                        if (status.ToLower().Equals("passed"))
+                        {
+                            UpdatePasedDetails(element);
+                        } else if (status.ToLower().Equals("failed"))
+                        {
+                            UpdateFailedDetails(element);
+                        }
 
                         //Save Element
                         element.Save("Testing-Report.xml");
@@ -92,7 +98,17 @@ namespace TestReportGenerator
                     XElement element = doc_Main.Element("Test-Suite");
 
                     // Increment Passed & Failures
-                    IncrementTotalANDPassedAttributes(element);
+                    // UpdateSummaryTabDetails(element);
+
+                    //Increment Total Attributes based on execution
+                    if (status.ToLower().Equals("passed"))
+                    {
+                        UpdatePasedDetails(element);
+                    }
+                    else if (status.ToLower().Equals("failed"))
+                    {
+                        UpdateFailedDetails(element);
+                    }
 
                     //Save element
                     element.Save("Testing-Report.xml");
@@ -108,15 +124,14 @@ namespace TestReportGenerator
 
                 //Update "total-time" attribute
                 UpdateTotalTime(DateTime.Parse(startedTime), DateTime.Parse(endedTime));
-      
+
                 //Delete Temp.xml since its of no use now
                 File.Delete("Temp.xml");
 
                 // Start Processing HTML file from here..
-                GenerateHTMLFile();
-
+                // GenerateHTMLFile();
             }
-            else
+            /*else
             {
                 // Since file doesn't exist and it may have been already deleted only in case of failed status,
                 // Increment "failures" attribute value
@@ -133,20 +148,20 @@ namespace TestReportGenerator
                 //Generate HTML Again
                 GenerateHTMLFile();
 
-                /*
-                int valFailures = Convert.ToInt32(element.Attribute("failures").Value);
+
+               *//* int valFailures = Convert.ToInt32(element.Attribute("failures").Value);
                 valFailures = valFailures + 1;
                 element.Attribute("failures").Value = valFailures.ToString();
-                
+
 
                 // Update "passed" attributes values
                 int valtotal = Convert.ToInt32(element.Attribute("total").Value);
-                int valPassed = valtotal - valFailure;
+                int valPassed = valtotal - valFailures;
                 element.Attribute("passed").Value = valPassed.ToString();
-                element.Save("Testing-Report.xml");
-                */
+                element.Save("Testing-Report.xml");*//*
 
-            }
+
+            }*/
         }
 
         private static void UpdateTotalTime(DateTime startTime, DateTime endTime)
@@ -181,9 +196,9 @@ namespace TestReportGenerator
             int valTotal = Convert.ToInt32(element.Attribute("total").Value);
 
             // Update "failure" attribute value
-            int valFailure = Convert.ToInt32(element.Attribute("failures").Value);
+            int valFailure = Convert.ToInt32(element.Attribute("failed").Value);
             valFailure = valFailure + 1;
-            element.Attribute("failures").Value = valFailure.ToString();
+            element.Attribute("failed").Value = valFailure.ToString();
 
             // Update "passed" attribute value
             int valPassed = valTotal - valFailure;
@@ -193,7 +208,7 @@ namespace TestReportGenerator
             element.Save("Testing-Report.xml");
         }
 
-        private static void IncrementTotalANDPassedAttributes(XElement element)
+        private static void UpdatePasedDetails(XElement element)
         {
             // Increment "total" attribute value
             int valTotal = Convert.ToInt32(element.Attribute("total").Value);
@@ -204,46 +219,39 @@ namespace TestReportGenerator
             int valPassed = Convert.ToInt32(element.Attribute("passed").Value);
             valPassed = valPassed + 1;
             element.Attribute("passed").Value = valPassed.ToString();
+            Console.WriteLine("Passed--------" + valPassed);
+            //Save element
+            element.Save("Testing-Report.xml");
+        }
+
+        private static void UpdateFailedDetails(XElement element)
+        {
+            // Increment "total" attribute value
+            int valTotal = Convert.ToInt32(element.Attribute("total").Value);
+            valTotal = valTotal + 1;
+            element.Attribute("total").Value = valTotal.ToString();
 
             // Update Failures
-            int valFailures = valTotal - valPassed;
-            element.Attribute("failures").Value = valFailures.ToString();
+            //int valFailures = valTotal - valPassed;
+            int valFailures = Convert.ToInt32(element.Attribute("failed").Value);
+            valFailures = valFailures + 1;
+            element.Attribute("failed").Value = valFailures.ToString();
+            Console.WriteLine("Failed--------" + valFailures);
 
             //Save element
             element.Save("Testing-Report.xml");
         }
 
-        private static void CheckAndUpdateAttributes(XElement element)
+        private static void CreateSummaryTabAttribute(XElement element)
         {
+            element.Add(new XAttribute("name", "UiPath Project - Test Automation"));
+            element.Add(new XAttribute("total", "0"));
+            element.Add(new XAttribute("passed", "0"));
+            element.Add(new XAttribute("failed", "0"));
+            Console.WriteLine("Failed Attribute created-------------------------");
+            element.Add(new XAttribute("execution-date", DateTime.Now.ToString()));
+            element.Add(new XAttribute("total-time", "0"));
 
-            //if (element.Attribute("name") == null)
-            {
-                element.Add(new XAttribute("name", "UiPath Project - Test Automation"));
-            }
-            //if (element.Attribute("total") == null)
-            {
-                element.Add(new XAttribute("total", "0"));
-            }
-
-            //if (element.Attribute("passed") == null)
-            {
-                element.Add(new XAttribute("passed", "0"));
-            }
-
-            //if (element.Attribute("failures") == null)
-            {
-                element.Add(new XAttribute("failures", "0"));
-            }
-
-            //if (element.Attribute("execution-date") == null)
-            {
-                element.Add(new XAttribute("execution-date", DateTime.Now.ToString()));
-            }
-
-            //if (element.Attribute("total-time") == null)
-            {
-                element.Add(new XAttribute("total-time", "0"));
-            }
         }
 
 
@@ -312,7 +320,7 @@ namespace TestReportGenerator
             string testName = doc.Attribute("name").Value;
             int testTests = int.Parse(!string.IsNullOrEmpty(doc.Attribute("total").Value) ? doc.Attribute("total").Value : "0");
             int testPassed = int.Parse(!string.IsNullOrEmpty(doc.Attribute("passed").Value) ? doc.Attribute("passed").Value : "0");
-            int testFailures = int.Parse(!string.IsNullOrEmpty(doc.Attribute("failures").Value) ? doc.Attribute("failures").Value : "0");
+            int testFailures = int.Parse(!string.IsNullOrEmpty(doc.Attribute("failed").Value) ? doc.Attribute("failed").Value : "0");
             //int testNotRun = int.Parse(!string.IsNullOrEmpty(doc.Attribute("not-run").Value) ? doc.Attribute("not-run").Value : "0");
             //int testInconclusive = int.Parse(!string.IsNullOrEmpty(doc.Attribute("inconclusive").Value) ? doc.Attribute("inconclusive").Value : "0");
             //int testIgnored = int.Parse(!string.IsNullOrEmpty(doc.Attribute("ignored").Value) ? doc.Attribute("ignored").Value : "0");

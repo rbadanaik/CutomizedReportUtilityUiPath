@@ -80,7 +80,17 @@ namespace TestReportGenerator
                         CheckAndUpdateAttributes(element);
 
                         //Increment Total Attributes
-                        IncrementTotalANDPassedAttributes(element);
+                        // IncrementTotalANDPassedAttributes(element);
+
+                        //Increment Total Attributes based on execution
+                        if (status.ToLower().Equals("passed"))
+                        {
+                            UpdatePasedDetails(element);
+                        }
+                        else if (status.ToLower().Equals("failed"))
+                        {
+                            UpdateFailedDetails(element);
+                        }
 
                         //Save Element
                         element.Save("Testing-Report.xml");
@@ -92,7 +102,17 @@ namespace TestReportGenerator
                     XElement element = doc_Main.Element("Test-Suite");
 
                     // Increment Passed & Failures
-                    IncrementTotalANDPassedAttributes(element);
+                    // IncrementTotalANDPassedAttributes(element);
+
+                    //Increment Total Attributes based on execution
+                    if (status.ToLower().Equals("passed"))
+                    {
+                        UpdatePasedDetails(element);
+                    }
+                    else if (status.ToLower().Equals("failed"))
+                    {
+                        UpdateFailedDetails(element);
+                    }
 
                     //Save element
                     element.Save("Testing-Report.xml");
@@ -108,7 +128,7 @@ namespace TestReportGenerator
 
                 //Update "total-time" attribute
                 UpdateTotalTime(DateTime.Parse(startedTime), DateTime.Parse(endedTime));
-      
+
                 //Delete Temp.xml since its of no use now
                 File.Delete("Temp.xml");
 
@@ -123,15 +143,19 @@ namespace TestReportGenerator
                 XDocument doc_Main = XDocument.Load("Testing-Report.xml");
                 XElement element = doc_Main.Element("Test-Suite");
 
-                IncrementTotalANDFailedAttributes(element);
+                // IncrementTotalANDFailedAttributes(element);
                 //Console.WriteLine("Temp.xml File doesn't exists. Hence test is Failed.");
-
+                //Increment Total Attributes based on execution
+          
                 //Save element
                 element.Save("Testing-Report.xml");
+
+                Console.WriteLine("-----here i am--------");
 
                 //Generate HTML Again
                 GenerateHTMLFile();
             }
+            // GenerateHTMLFile();
         }
 
         private static void UpdateTotalTime(DateTime startTime, DateTime endTime)
@@ -151,13 +175,13 @@ namespace TestReportGenerator
             StringBuilder html = new StringBuilder();
             string input = "Testing-Report.xml", output = string.Empty;
             output = Path.ChangeExtension(input, "html");
-
+            
             html.Append(generateReport.generateHeaderOnTestEnd(input));
             // Save HTML to the output file
             File.WriteAllText(output, html.ToString());
         }
 
-        private static void IncrementTotalANDFailedAttributes(XElement element)
+        /*private static void IncrementTotalANDFailedAttributes(XElement element)
         {
             // Increment "total" attribute value
             int valTotal = Convert.ToInt32(element.Attribute("total").Value);
@@ -173,9 +197,9 @@ namespace TestReportGenerator
 
             //Save element
             element.Save("Testing-Report.xml");
-        }
+        }*/
 
-        private static void IncrementTotalANDPassedAttributes(XElement element)
+        /*private static void IncrementTotalANDPassedAttributes(XElement element)
         {
             // Increment "total" attribute value
             int valTotal = Convert.ToInt32(element.Attribute("total").Value);
@@ -193,7 +217,7 @@ namespace TestReportGenerator
 
             //Save element
             element.Save("Testing-Report.xml");
-        }
+        }*/
 
         private static void CheckAndUpdateAttributes(XElement element)
         {
@@ -214,7 +238,7 @@ namespace TestReportGenerator
 
             //if (element.Attribute("failures") == null)
             {
-                element.Add(new XAttribute("failures", "0"));
+                element.Add(new XAttribute("failed", "0"));
             }
 
             //if (element.Attribute("execution-date") == null)
@@ -228,8 +252,42 @@ namespace TestReportGenerator
             }
         }
 
+        private static void UpdatePasedDetails(XElement element)
+        {
+            // Increment "total" attribute value
+            int valTotal = Convert.ToInt32(element.Attribute("total").Value);
+            valTotal = valTotal + 1;
+            element.Attribute("total").Value = valTotal.ToString();
 
-       
+            // Update "passed" attribute value
+            int valPassed = Convert.ToInt32(element.Attribute("passed").Value);
+            valPassed = valPassed + 1;
+            element.Attribute("passed").Value = valPassed.ToString();
+            Console.WriteLine("Passed--------" + valPassed);
+            //Save element
+            element.Save("Testing-Report.xml");
+        }
+
+        private static void UpdateFailedDetails(XElement element)
+        {
+            // Increment "total" attribute value
+            int valTotal = Convert.ToInt32(element.Attribute("total").Value);
+            valTotal = valTotal + 1;
+            element.Attribute("total").Value = valTotal.ToString();
+
+            // Update Failures
+            //int valFailures = valTotal - valPassed;
+            int valFailures = Convert.ToInt32(element.Attribute("failed").Value);
+            valFailures = valFailures + 1;
+            element.Attribute("failed").Value = valFailures.ToString();
+            Console.WriteLine("Failed--------" + valFailures);
+
+            //Save element
+            element.Save("Testing-Report.xml");
+        }
+
+
+
 
         private static string GetHTML5Footer()
         {

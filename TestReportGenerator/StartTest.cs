@@ -3,12 +3,7 @@ using System.Activities;
 using System.Activities.Hosting;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
-using System.Xml.Linq;
 
 namespace TestReportGenerator
 {
@@ -58,7 +53,7 @@ namespace TestReportGenerator
 
         protected override void Execute(CodeActivityContext context)
         {
-            
+
             WorkflowInstanceProxy proxy = context.GetExtension<WorkflowInstanceInfo>().GetProxy();
             Activity root = proxy.WorkflowDefinition;
 
@@ -73,25 +68,25 @@ namespace TestReportGenerator
                 testname = root.DisplayName;
             }
 
-                XmlWriterSettings xmlWriterSettings = new XmlWriterSettings();
-                xmlWriterSettings.Indent = true;
-                xmlWriterSettings.NewLineOnAttributes = true;
-                using (XmlWriter xmlWriter = XmlWriter.Create("Temp.xml", xmlWriterSettings))
-                {
-                    xmlWriter.WriteStartDocument();
-                    xmlWriter.WriteStartElement("Test-Suite");
-                    xmlWriter.WriteStartElement("Result");
-                    xmlWriter.WriteElementString("TestScenario", ScenarioName.Get(context));
-                    xmlWriter.WriteElementString("TestName", testname);
-                    xmlWriter.WriteElementString("Started", DateTime.Now.ToString());
-                    //xmlWriter.WriteElementString("Ended", "10:00:04");
-                    xmlWriter.WriteElementString("Status", Status.Get(context));
-                    xmlWriter.WriteEndElement();
-                    xmlWriter.WriteEndElement();
-                    xmlWriter.WriteEndDocument();
-                    xmlWriter.Flush();
-                    xmlWriter.Close();
-                }
+            XmlWriterSettings xmlWriterSettings = new XmlWriterSettings();
+            xmlWriterSettings.Indent = true;
+            xmlWriterSettings.NewLineOnAttributes = true;
+            using (XmlWriter xmlWriter = XmlWriter.Create("Temp.xml", xmlWriterSettings))
+            {
+                xmlWriter.WriteStartDocument();
+                xmlWriter.WriteStartElement("Test-Suite");
+                xmlWriter.WriteStartElement("Result");
+                xmlWriter.WriteElementString("TestScenario", ScenarioName.Get(context));
+                xmlWriter.WriteElementString("TestName", testname);
+                xmlWriter.WriteElementString("Started", DateTime.Now.ToString());
+                //xmlWriter.WriteElementString("Ended", "10:00:04");
+                xmlWriter.WriteElementString("Status", Status.Get(context));
+                xmlWriter.WriteEndElement();
+                xmlWriter.WriteEndElement();
+                xmlWriter.WriteEndDocument();
+                xmlWriter.Flush();
+                xmlWriter.Close();
+            }
         }
 
     }
